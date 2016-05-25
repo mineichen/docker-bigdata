@@ -1,0 +1,78 @@
+version: '2'
+services:
+  metastore-mysql:
+    image: mysql:5.6
+    networks:
+    - cluster
+    user: mysql
+    volumes:
+    - hive-metastore:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: fafsdlakdjf23u2903u
+      MYSQL_USER: hive
+      MYSQL_PASSWORD: mypassword
+      MYSQL_DATABASE: metastore
+  metastore:
+    image: mineichen/hive:1.2.1.0
+    networks:
+    - cluster
+    entrypoint: sh -c "while ! nc -z metastore-mysql 3306; do sleep 3; done && hive --service metastore"
+    user: hive
+    volumes:
+    - ${PWD}/hive/hive-site-mysql.xml:/usr/local/hive/conf/hive-site.xml
+    - ${PWD}/hadoop/core-site.xml:/usr/local/hadoop/etc/hadoop/core-site.xml
+    depends_on:
+    - metastore-mysql
+  hiveserver2:
+    image: mineichen/hive:1.2.1.0
+    networks:
+    - cluster
+    #Metastore needs to be up and running
+    entrypoint: sh -c "while ! nc -z metastore 9083; do sleep 3; done && hiveserver2"
+    user: hive
+    volumes:
+    - ${PWD}/hive/hive-site-mysql.xml:/usr/local/hive/conf/hive-site.xml
+    - ${PWD}/hadoop/core-site.xml:/usr/local/hadoop/etc/hadoop/core-site.xml
+    depends_on:
+    - metastore
+  hue:
+    image: studioetrange/docker-hue
+#    user: hue #Container starts supervisor with user root. The hue service runs with user hue
+    networks:
+    - cluster
+    ports:
+    - "8000:8000"
+    volumes:
+    - ${PWD}/hue:/opt/hue/desktop/conf
+    restart: always
+  hadoop-namenode:
+    image: mineichen/hadoop:2.6.0.0
+    user: hdfs
+    networks:
+    - cluster
+    volumes:
+    - hdfs:/hdfs
+    - ${PWD}/hadoop/core-site.xml:/usr/local/hadoop/etc/hadoop/core-site.xml
+    - ${PWD}/hadoop/hdfs-site.xml:/usr/local/hadoop/etc/hadoop/hdfs-site.xml
+    - ${PWD}/hadoop/slaves:/usr/local/hadoop/etc/hadoop/slaves
+    - ${PWD}/hadoop/namenode_entrypoint.sh:/usr/local/hadoop/namenode_entrypoint.sh
+    entrypoint: sh /usr/local/hadoop/namenode_entrypoint.sh
+  hadoop-datanode:
+    image: mineichen/hadoop:2.6.0.0
+    user: hdfs
+    networks:
+    - cluster
+    volumes:
+    - hdfs:/hdfs
+    - ${PWD}/hadoop/core-site.xml:/usr/local/hadoop/etc/hadoop/core-site.xml
+    - ${PWD}/hadoop/hdfs-site.xml:/usr/local/hadoop/etc/hadoop/hdfs-site.xml
+    - ${PWD}/hadoop/slaves:/usr/local/hadoop/etc/hadoop/slaves
+    entrypoint: ["/usr/local/hadoop/bin/hdfs", "datanode"]
+volumes:
+  hdfs:
+    driver: local
+  hive-metastore: 
+    driver: local
+networks:
+  cluster:
+    driver: bridge
