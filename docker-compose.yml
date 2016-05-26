@@ -56,7 +56,7 @@ services:
     - ${PWD}/hadoop/hdfs-site.xml:/usr/local/hadoop/etc/hadoop/hdfs-site.xml
     - ${PWD}/hadoop/slaves:/usr/local/hadoop/etc/hadoop/slaves
     - ${PWD}/hadoop/namenode_entrypoint.sh:/usr/local/hadoop/namenode_entrypoint.sh
-    entrypoint: sh /usr/local/hadoop/namenode_entrypoint.sh
+    entrypoint: /usr/local/hadoop/bin/hdfs namenode
   hadoop-datanode:
     image: mineichen/hadoop:2.6.0.0
     user: hdfs

@@ -8,6 +8,7 @@ It provides
   * Data is written to HDFS
   * JDBC-Service (HiveServer2)
 * Administrationtool Hue
+* Apache Spark
 
 Most containers are based on alpine linux, so that they have a small footprint. All the used images are "auto built" on hub.docker.com. 
 
@@ -19,8 +20,19 @@ docker-compose run --entrypoint 'sh -c "while ! nc -z metastore-mysql 3306; do s
   && schematool -dbType mysql -initSchema"' metastore
 ```
 
-The HDFS is initialized automatically if the folder ```/hdfs``` is empty. Your cluster is ready to run now.
+Furthermore we need to initialize the HDFS-Namenode. This is done with the following command:
+```
+docker-compose run --entrypoint 'sh -c "/usr/local/hadoop/bin/hdfs namenode -format"' hadoop-namenode
+```
 
-```docker-compose up```
+If you use windows, these commands are only executable with a "-d" flag to daemonize the commands.
+Make sure you stop all running containers after the initialisation (```docker rm -f $(docker ps -a -q)```)
+There will be problems with shared volumes otherwise.
+
+# Start
+The following command starts all HIVE, HDFS and Hue-Services
+```
+docker-compose up
+```
 
 
