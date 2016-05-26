@@ -1,0 +1,20 @@
+version: '2'
+services:
+  spark:
+    image: mineichen/spark:1.6.1.0
+    networks:
+    - cluster
+    user: spark
+    volumes:
+    - sparkjobs:/home/spark/jobs
+    - ${PWD}/hadoop/core-site.xml:/usr/local/hadoop/etc/hadoop/core-site.xml
+    - ${PWD}/hive/hive-site-mysql.xml:/usr/local/spark/conf/hive-site.xml
+    environment:
+      HADOOP_CONF_DIR: /usr/local/hadoop/etc/hadoop/
+volumes:
+  sparkjobs:
+    driver: local
+networks:
+  cluster:
+    external: 
+      name: "" #For some reason this refers to an existing ${PROJECT_NAME}_cluster

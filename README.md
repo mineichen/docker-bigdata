@@ -36,3 +36,23 @@ docker-compose up
 ```
 
 
+
+Transient Jobs, which shouldn't be started on ```docker-compose up``` but only if they are explicitely executed, are living in the ```docker-compose-transient.yml``` file.
+
+# Working with Apache Spark
+First, we need to publish our job to spark. Unfortunately docker doesn't allow us to directly copy files into a volume. 
+Thats why we need to start a container with a volume and copy the file into the mounted folder in our container.
+```
+export LAST_CONTAINER=`docker-compose -f docker-compose-transient.yml run -d spark sh`
+docker cp yourJob.jar ${LAST_CONTAINER}:/home/spark/jobs
+docker rm $LAST_CONTAINER
+```
+
+To start a spark-job you can perform the following command:
+```
+docker-compose -f docker-compose-transient.yml run spark \
+/usr/local/spark/bin/spark-submit \
+--class ch.lorempira.bigdata.swissmeteo.websiteweather.WeatherTransformer \
+--master local[2] \
+/home/spark/jobs/yourJob.jar
+```
