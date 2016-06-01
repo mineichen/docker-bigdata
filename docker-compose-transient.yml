@@ -9,6 +9,7 @@ services:
     - sparkjobs:/home/spark/jobs
     - ${PWD}/hadoop/core-site.xml:/usr/local/hadoop/etc/hadoop/core-site.xml
     - ${PWD}/hive/hive-site-mysql.xml:/usr/local/spark/conf/hive-site.xml
+    - ${PWD}/spark/log4j.properties:/usr/local/spark/conf/log4j.properties 
     environment:
       HADOOP_CONF_DIR: /usr/local/hadoop/etc/hadoop/
 volumes:
